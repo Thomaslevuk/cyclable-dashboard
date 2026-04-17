@@ -1,0 +1,16 @@
+# Secrets — NE JAMAIS pousser sur GitHub
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# macOS
+.DS_Store
+
+# PDFs et fichiers locaux
+*.pdf
+*.command
+server.py
