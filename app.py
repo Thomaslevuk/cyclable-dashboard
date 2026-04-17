@@ -98,17 +98,15 @@ def load_essais() -> pd.DataFrame:
 def load_shopify_orders() -> pd.DataFrame:
     """
     Récupère toutes les commandes Shopify.
-    Authentification : Basic Auth (Client ID + Secret).
+    Authentification : Admin API Access Token (X-Shopify-Access-Token).
     Le nom du magasin Cyclable est dans le champ 'company' des commandes.
     """
-    client_id = st.secrets.get("shopify_client_id", "")
-    client_secret = st.secrets.get("shopify_client_secret", "")
-    if not client_id or not client_secret:
+    token = st.secrets.get("shopify_token", "")
+    if not token:
         return pd.DataFrame()
 
-    credentials = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
     headers = {
-        "Authorization": f"Basic {credentials}",
+        "X-Shopify-Access-Token": token,
         "Content-Type": "application/json",
     }
     all_orders = []
@@ -209,11 +207,10 @@ def build_summary(df_e: pd.DataFrame, df_o: pd.DataFrame) -> pd.DataFrame:
             "Conv. %":    round(c / e * 100, 1) if e > 0 else 0.0,
         })
 
-    return (
-        pd.DataFrame(rows)
-        .sort_values("Essais", ascending=False)
-        .reset_index(drop=True)
-    )
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return df
+    return df.sort_values("Essais", ascending=False).reset_index(drop=True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
