@@ -92,16 +92,44 @@ def load_essais() -> pd.DataFrame:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# SHOPIFY — OAuth2 : échange client_id + secret → access token
+# ─────────────────────────────────────────────────────────────────────────────
+def get_shopify_token() -> str:
+    """
+    Obtient un access token Shopify via OAuth2 client_credentials.
+    Utilise le Client ID + Secret (nouvelle auth Shopify depuis jan 2025).
+    """
+    client_id     = st.secrets.get("shopify_client_id", "")
+    client_secret = st.secrets.get("shopify_client_secret", "")
+    if not client_id or not client_secret:
+        return ""
+    try:
+        r = requests.post(
+            f"https://{SHOPIFY_SHOP}/admin/oauth/access_token",
+            json={
+                "client_id":     client_id,
+                "client_secret": client_secret,
+                "grant_type":    "client_credentials",
+            },
+            timeout=15,
+        )
+        r.raise_for_status()
+        return r.json().get("access_token", "")
+    except Exception as e:
+        st.warning(f"Shopify auth : {e}")
+        return ""
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # CHARGEMENT — SHOPIFY (commandes B2B magasins)
 # ─────────────────────────────────────────────────────────────────────────────
 @st.cache_data(ttl=3600 * 8, show_spinner="Chargement des commandes Shopify…")
 def load_shopify_orders() -> pd.DataFrame:
     """
-    Récupère toutes les commandes Shopify.
-    Authentification : Admin API Access Token (X-Shopify-Access-Token).
-    Le nom du magasin Cyclable est dans le champ 'company' des commandes.
+    Récupère toutes les commandes Shopify (B2B magasins Cyclable).
+    Auth : OAuth2 client_credentials → access token → requêtes API.
     """
-    token = st.secrets.get("shopify_token", "")
+    token = get_shopify_token()
     if not token:
         return pd.DataFrame()
 
