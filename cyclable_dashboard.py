@@ -225,9 +225,11 @@ def _clean_num(series: pd.Series) -> pd.Series:
     """Nettoie une colonne de valeurs numériques (€, espaces, virgules…)."""
     return pd.to_numeric(
         series.astype(str)
-              .str.replace(r"[\u00a0\s€]", "", regex=True)
-              .str.replace(",", ".", regex=False)
-              .str.replace(r"[^\d.\-]", "", regex=True),
+              .str.replace("\u00a0", "", regex=False)   # espace insécable
+              .str.replace(" ", "", regex=False)         # espace ordinaire
+              .str.replace("€", "", regex=False)         # symbole euro
+              .str.replace(",", ".", regex=False)         # virgule → point
+              .str.replace(r"[^\d.\-]", "", regex=True), # garde chiffres/point/signe
         errors="coerce",
     ).fillna(0)
 
