@@ -57,7 +57,10 @@ def is_bike(item: dict) -> bool:
         return True
     if sku.startswith("yuvy"):
         return True
-    # fallback titre (Solo/Duo/Jumbo/Yuvy sans SKU renseigné)
+    # Si le SKU est AL005xxx ou BK0xxx non listé → c'est un accessoire, pas un vélo
+    if sku.startswith("al005") or sku.startswith("bk0"):
+        return False
+    # Fallback titre uniquement pour les produits sans SKU AL005/BK0
     return any(k in title for k in BIKE_TITLE_KEYWORDS)
 
 
